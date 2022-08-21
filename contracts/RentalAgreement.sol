@@ -8,23 +8,24 @@ contract RentalAgreement {
     struct PaidRent {
     uint id; /* The paid rent id*/
     uint value; /* The amount of rent that is paid*/
+    uint paymentTime; /* Payment time*/
+    address renterAddress; /* Address of the renter*/
     }
 
     uint public counter;
     uint public rent = 0.2 ether;
-    string public house;
     uint public createdTimestamp;
 
     address payable public landlord;
 
     mapping(uint => address) public renter;
     mapping(address => bool) public renterStatus;
+    mapping(address => bool) public paymentStatus;
     mapping(address => uint) public rentTime;
 
     PaidRent[] public paidrents;
 
-    constructor(string memory _house) {
-        house = _house;
+    constructor() {
         landlord = payable(msg.sender);
         createdTimestamp = block.timestamp;
     }
@@ -43,10 +44,6 @@ contract RentalAgreement {
 
     function getPaidRents() internal view returns (PaidRent[] memory) {
         return paidrents;
-    }
-
-    function getHouse() public view returns (string memory) {
-        return house;
     }
 
     function getLandlord() public view returns (address) {
@@ -71,6 +68,14 @@ contract RentalAgreement {
     /* setter */
     function updateRent(uint _newRent) public onlyLandlord{
         rent = _newRent;
+    }
+    
+    function rentPaymentStatus(address[] calldata paymentStatusAddress) public onlyLandlord{
+        for(uint256 i = 0; i < paymentStatusAddress.length; i++) {
+            address statusAddress = paymentStatusAddress[i];
+            require(statusAddress != address(0), "Cannot update the zero address");
+            paymentStatus[statusAddress] = true;
+        }
     }
     /* Events */
     event agreementConfirmed();
@@ -103,7 +108,9 @@ contract RentalAgreement {
         landlord.transfer(msg.value);
         paidrents.push(PaidRent({
         id : paidrents.length + 1,
-        value : msg.value
+        value : msg.value,
+        paymentTime : block.timestamp, 
+        renterAddress : msg.sender
         }));        
 
         rentTime[msg.sender] = monthTime;

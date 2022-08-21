@@ -29,7 +29,7 @@ describe("RentalAgreement", function () {
         /**deploy the  RentalAgreement Smart contract*/
 
         const rentalAgreement = await ethers.getContractFactory("RentalAgreement");
-        deployedRentalAgreement = await rentalAgreement.deploy('House No.1 Doha Qater');
+        deployedRentalAgreement = await rentalAgreement.deploy();
         await deployedRentalAgreement.connect(owner).deployed();
 
 
