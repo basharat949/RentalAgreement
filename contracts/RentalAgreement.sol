@@ -14,6 +14,7 @@ contract RentalAgreement {
 
     uint public counter;
     uint public rent = 0.2 ether;
+    uint public utility;
     uint public createdTimestamp;
 
     address payable public landlord;
@@ -70,6 +71,15 @@ contract RentalAgreement {
         rent = _newRent;
     }
     
+    function setUtitlity(uint _utility) public onlyLandlord{
+        utility = _utility;
+    }
+
+
+    function getUtility() public view returns (uint) {
+        return utility;
+    }
+
     function rentPaymentStatus(address[] calldata paymentStatusAddress) public onlyLandlord{
         for(uint256 i = 0; i < paymentStatusAddress.length; i++) {
             address statusAddress = paymentStatusAddress[i];
@@ -89,22 +99,20 @@ contract RentalAgreement {
         require(msg.sender != landlord, "You are the owner");
         require(msg.sender != address(0x0), "zero address not Allowed");
         require(renterStatus[msg.sender]== false, "Address already exist");
-        emit agreementConfirmed();
         renter[counter] = msg.sender;
         rentTime[msg.sender] = block.timestamp;
         counter++;
         renterStatus[msg.sender] = true;
+        emit agreementConfirmed();
     }
 
     function payRent() public payable  onlyRenter{
         uint paytime = rentTime[msg.sender];
-        uint monthTime = paytime + 30 days;
+        uint monthTime = paytime + 2628000 seconds;
         require(msg.sender != landlord, "You are the owner");
         require(renterStatus[msg.sender]== true, "You are not renter");
         require(block.timestamp >= monthTime, "Few days remaining");
-        require(msg.value == rent, "value not correct");
-        emit paidRent();
-
+        require(msg.value == rent+utility, "value not correct");
         landlord.transfer(msg.value);
         paidrents.push(PaidRent({
         id : paidrents.length + 1,
@@ -114,6 +122,7 @@ contract RentalAgreement {
         }));        
 
         rentTime[msg.sender] = monthTime;
+        emit paidRent();
 
     }
 
